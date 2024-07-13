@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from math import log
 from typing import List
-from block import DFL, Conv
-from utils import dist2bbox, make_anchors
+from .block import DFL, Conv
+from .utils import dist2bbox, make_anchors
 
 class DetectionHead(nn.Module):
     anchors = torch.empty(0)
@@ -18,6 +18,7 @@ class DetectionHead(nn.Module):
         self.n_outputs = 4 * self.reg_max + self.nc
         self.stride = torch.zeros(self.n_layers)
 
+        print(in_channels)
 
         c2 = max(16, in_channels[0] // 4, self.reg_max * 4)
         c3 = max(in_channels[0], min(self.nc, 100))
