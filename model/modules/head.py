@@ -39,6 +39,8 @@ class DetectionHead(nn.Module):
         self.dfl = DFL(in_channels=self.reg_max)
 
     def forward(self, x):
+        device = x[0].device
+        
         for i in range(self.n_layers):
             x[i] = torch.cat((self.box_conv[i](x[i]), self.cls_convs[i](x[i])),
                              dim=1)
@@ -53,7 +55,7 @@ class DetectionHead(nn.Module):
                           dim=2)
 
         if self.shape != shape:
-            self.anchors, self.strides = make_anchors(x, self.stride)
+            self.anchors, self.strides = make_anchors(x, self.stride, device=device)
             self.anchors.transpose_(0, 1)
             self.strides.transpose_(0, 1)
             self.shape = shape
