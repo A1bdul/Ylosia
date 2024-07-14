@@ -35,7 +35,7 @@ class Dataset(torch.utils.data.Dataset):
                  img_size: Tuple[int, int] = (640, 640)):
         super().__init__()
         self.config = yaml.safe_load(open(config, 'r'))
-        self.dataset_path = self.config.get('path')
+        self.dataset_path = os.path.dirname(config)
         self.batch_size = batch_size
         self.img_size = img_size
 
@@ -59,9 +59,9 @@ class Dataset(torch.utils.data.Dataset):
         """
         Removes empty label files and corresponding image files from the dataset.
         """
-        im_dir = os.path.join(self.dataset_path, self.config[self.mode])
+        im_dir = os.path.join(self.dataset_path, f'{self.mode}/images')
         label_dir = os.path.join(self.dataset_path,
-                                 self.config[self.mode + '_labels'])
+                                 f'{self.mode}/labels')
 
         image_paths = glob(os.path.join(im_dir, '*.jpg')) + \
                       glob(os.path.join(im_dir, '*.png')) + \
