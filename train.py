@@ -96,6 +96,9 @@ def main(args):
     epochs = []
     losses = []
 
+    best_loss = float('inf')
+    best_epoch = 0
+
     for epoch in trange(train_config['epochs']):
         epoch_losses = []
         for batch in dataloader:
@@ -110,21 +113,24 @@ def main(args):
         epochs.append(epoch + 1)
         losses.append(epoch_loss_avg)
 
-        if (epoch + 1) % train_config['save_freq'] == 0 and args.save:
-            log.info('Saving model to checkpoint...')
-            print('\nSaving model to checkpoint...')
-            model.save(os.path.join(save_path, f'{epoch + 1}.pt'))
+        if epoch_loss_avg < best_loss:
+            best_loss = epoch_loss_avg
+            best_epoch = epoch + 1
 
-            # Plot and save loss graph in the same directory as the weights
-            plt.figure(figsize=(10, 5))
-            plt.plot(epochs, losses, label='Training Loss')
-            plt.xlabel('Epoch')
-            plt.ylabel('Loss')
-            plt.title('Training Loss Over Epochs')
-            plt.grid(True)
-            plt.legend()
-            plt.savefig(os.path.join(save_path, f'loss_plot_epoch_{epoch + 1}.png'))
-            plt.close()
+            if args.save:
+                log.info('Saving model to checkpoint...')
+                model.save(os.path.join(save_path, f'{epoch + 1}.pt'))
+
+                # Plot and save loss graph in the same directory as the weights
+                plt.figure(figsize=(10, 5))
+                plt.plot(epochs, losses, label='Training Loss')
+                plt.xlabel('Epoch')
+                plt.ylabel('Loss')
+                plt.title('Training Loss Over Epochs')
+                plt.grid(True)
+                plt.legend()
+                plt.savefig(os.path.join(save_path, f'loss_plot_epoch_{epoch + 1}.png'))
+                plt.close()
 
     # Final plot of the overall loss curve
     plt.figure(figsize=(10, 5))
@@ -136,6 +142,14 @@ def main(args):
     plt.legend()
     plt.savefig(os.path.join(save_path, 'loss_plot_final.png'))
     plt.show()
+
+    # Rename the best model checkpoint to 'best.pt'
+    best_model_path = os.path.join(save_path, f'{best_epoch}.pt')
+    best_model_rename_path = os.path.join(save_path, 'best.pt')
+
+    if os.path.exists(best_model_path):
+        os.rename(best_model_path, best_model_rename_path)
+        log.info(f"Best model checkpoint '{best_epoch}.pt' renamed to 'best.pt'.")
 
 
 if __name__ == "__main__":
