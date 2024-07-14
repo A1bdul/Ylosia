@@ -51,7 +51,7 @@ class Dataset(torch.utils.data.Dataset):
             f'Found {len(self.im_files)} images in {os.path.join(self.dataset_path, self.config[self.mode])}'
         )
         print(
-            f'Found {len(self.label_files)} labels in {os.path.join(self.dataset_path, self.config[self.mode + "_labels"])}'
+            f'Found {len(self.label_files)} labels in {os.path.join(self.dataset_path, self.mode + "/labels")}'
         )
 
         self.labels = self.get_labels()
@@ -119,8 +119,7 @@ class Dataset(torch.utils.data.Dataset):
 
         If no label directory is found, returns None.
         """
-        label_dir = os.path.join(self.dataset_path,
-                                 self.config[self.mode + '_labels'])
+        label_dir = os.path.join(self.dataset_path, self.mode + '/labels')
         if os.path.isdir(label_dir):
             return [
                 os.path.join(label_dir,
