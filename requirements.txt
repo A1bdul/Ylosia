@@ -1,0 +1,6 @@
+torch
+opencv-python
+torchinfo
+torchvision
+tqdm
+pyyaml
