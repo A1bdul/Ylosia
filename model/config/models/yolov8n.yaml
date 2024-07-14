@@ -40,7 +40,7 @@ head:
   - [Conv, -1, null, [512, 3, 2]]                  # 16 (128,h/16,w/16) -> (128,h/32,w/32)
   - [C2f, [-1, 9], 3, [1024, False]]               # 17 (128+256,h/32,w/32) -> (256,h/32,w/32)
 
-  - [DetectionHead, [13, 15, 17], null, [80]]      # 18 (h,w,c) -> (h,w,nc+4*reg_max)
+  - [DetectionHead, [13, 15, 17], null, [1]]      # 18 (h,w,c) -> (h,w,nc+4*reg_max)cl
 
 loss_gains:
   cls: 0.5

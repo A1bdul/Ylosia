@@ -24,12 +24,13 @@ class BaseModel(nn.Module):
 
     def load(self, weights: Union[dict, nn.Module]):
         """Loads weights into the model."""
-        state_dict = weights.float().state_dict() if isinstance(weights, nn.Module) else weights
+        state_dict = weights.float().state_dict() if isinstance(
+            weights, nn.Module) else weights
         self.load_state_dict(state_dict)
 
     def forward(self, x: torch.Tensor, *args, **kwargs):
         """Performs a forward pass through the model."""
-        return self.predict(x, *args, **kwargs) 
+        return self.predict(x, *args, **kwargs)
 
     def predict(self, x: torch.Tensor, *args, **kwargs):
         """Predicts outputs based on input."""
@@ -47,8 +48,9 @@ class BaseModel(nn.Module):
                     x if i == -1 else outputs[i] for i in module.f
                 ]
                 # Don't concat if module is DetectionHead (it takes in a list)
-                if isinstance(x, list) and not isinstance(module, DetectionHead):
-                    
+                if isinstance(x,
+                              list) and not isinstance(module, DetectionHead):
+
                     x = torch.cat(x, dim=1)
             x = module(x)
 
@@ -59,7 +61,7 @@ class BaseModel(nn.Module):
         """Calculates the loss based on the model's predictions."""
         preds = self.forward(batch['images'].to(self.device))
         return self.loss_fn.compute_loss(batch, preds)
-        
+
     def postprocess(self, preds: torch.Tensor):
         """Post-processes the model's predictions."""
         return preds
