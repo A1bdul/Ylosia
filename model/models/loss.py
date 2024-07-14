@@ -43,7 +43,7 @@ class BboxLoss(BaseLoss):
         iou_loss = ((1 - iou) * weight).sum() / target_scores_sum
 
         if self.use_dfl:
-            gt_ltrb = bbox2dist(target_boxes, anchor_points, self.reg_max, device=device)
+            gt_ltrb = bbox2dist(target_boxes, anchor_points, self.reg_max, device=self.device)
             dfl_loss = df_loss(pred_box_dist[mask].view(-1, self.reg_max + 1),
                                gt_ltrb[mask]) * weight
             dfl_loss = dfl_loss.sum() / target_scores_sum
