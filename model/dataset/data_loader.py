@@ -26,18 +26,21 @@ class Dataset(torch.utils.data.Dataset):
         batch_size (optional, int): batch size for dataloader
         mode (optional, str): dataset mode (train, val, test)
         img_size (optional, Tuple[int,int]): image size to pad images to
+        device (optional, str): device to use for tensor operations ('cpu' or 'cuda')
     """
 
     def __init__(self,
-                 config: dict,
+                 config: str,
                  batch_size: int = 8,
                  mode: str = 'train',
-                 img_size: Tuple[int, int] = (640, 640)):
+                 img_size: Tuple[int, int] = (640, 640),
+                 device: str = 'cpu'):
         super().__init__()
         self.config = yaml.safe_load(open(config, 'r'))
         self.dataset_path = os.path.dirname(config)
         self.batch_size = batch_size
         self.img_size = img_size
+        self.device = torch.device(device)
 
         assert mode in ('train', 'valid', 'test'), f'Invalid mode: {mode}'
         self.mode = mode
@@ -97,7 +100,7 @@ class Dataset(torch.utils.data.Dataset):
     def get_image_paths(self):
         """
         Get image paths from dataset directory
-    
+
         Searches recursively for .jpg, .png, and .jpeg files.
         """
         im_dir = os.path.join(self.dataset_path, self.config[self.mode])
@@ -111,9 +114,9 @@ class Dataset(torch.utils.data.Dataset):
     def get_label_paths(self):
         """
         Get label paths from dataset directory
-    
+
         Uses ids from image paths to find corresponding label files.
-    
+
         If no label directory is found, returns None.
         """
         label_dir = os.path.join(self.dataset_path,
@@ -168,10 +171,10 @@ class Dataset(torch.utils.data.Dataset):
 
                 class_ids.append(class_id)
 
-            # Convert to tensors
+            # Convert to tensors and move to device
             label_data = {
-                'bboxes': torch.tensor(boxes, dtype=torch.float32),
-                'cls': torch.tensor(class_ids, dtype=torch.long)
+                'bboxes': torch.tensor(boxes, dtype=torch.float32, device=self.device),
+                'cls': torch.tensor(class_ids, dtype=torch.long, device=self.device)
             }
 
             labels.append(label_data)
@@ -180,7 +183,7 @@ class Dataset(torch.utils.data.Dataset):
     def load_image(self, idx):
         """
         Loads image at specified index and prepares for model input.
-    
+
         Changes image shape to be specified img_size, but preserves aspect ratio.
         """
         im_file = self.im_files[idx]
@@ -200,7 +203,7 @@ class Dataset(torch.utils.data.Dataset):
 
         image = image.transpose((2, 0, 1))  # (h, w, 3) -> (3, h, w)
 
-        image = torch.from_numpy(image).float() / 255.0
+        image = torch.from_numpy(image).float().to(self.device) / 255.0
         # Pad image with black bars to desired img_size
         image, pads = pad_to(image, shape=self.img_size)
 
@@ -246,7 +249,7 @@ class Dataset(torch.utils.data.Dataset):
                 collated_batch[k] = [b[k] for b in batch]
 
         collated_batch['batch_idx'] = [
-            torch.full((batch[i]['cls'].shape[0], ), i)
+            torch.full((batch[i]['cls'].shape[0], ), i, device=batch[i]['cls'].device)
             for i in range(len(batch))
         ]
         collated_batch['batch_idx'] = torch.cat(collated_batch['batch_idx'],

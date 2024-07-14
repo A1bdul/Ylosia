@@ -73,7 +73,8 @@ def main(args):
     optimizer = torch.optim.Adam(model.parameters(), lr=train_config['lr'])
     dataset = Dataset(config=args.dataset,
                       mode=args.dataset_mode,
-                      batch_size=train_config['batch_size'])
+                      batch_size=train_config['batch_size'],
+                     device=device)
 
     dataloader = DataLoader(dataset,
                             batch_size=train_config['batch_size'],
