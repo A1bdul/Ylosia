@@ -20,7 +20,7 @@ def init_weights(model:nn.Module):
             m.inplace = True
 
 
-def nms(preds:torch.Tensor, confidence_thresh:float=0.25, iou_thresh:float=0.45) -> List[torch.Tensor]:
+def nms(preds:torch.Tensor, confidence_thresh:float=0.25, iou_thresh:float=0.45, device:str='cpu') -> List[torch.Tensor]:
     """
     Non-Maximum Suppression for predicted boxes and classes
 
@@ -42,7 +42,7 @@ def nms(preds:torch.Tensor, confidence_thresh:float=0.25, iou_thresh:float=0.45)
     # (b, 4+nc, a) -> (b, a, 4+nc)
     preds = preds.transpose(-1, -2)
 
-    preds[..., :4] = xywh2xyxy(preds[..., :4])
+    preds[..., :4] = xywh2xyxy(preds[..., :4], device=device)
 
     out = [torch.zeros((0,6), device=preds.device)] * b
 

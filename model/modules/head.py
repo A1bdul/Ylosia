@@ -65,7 +65,7 @@ class DetectionHead(nn.Module):
         # (batch, 4, n_layers * height * width) (ltrb) -> (xywh)
 
         bbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0),
-                         dim=1) * self.strides
+                         dim=1, device=device) * self.strides
 
         # (batch, 4 + nc, n_layers * height * width)
         out = torch.cat((bbox, torch.sigmoid(cls)), dim=1)

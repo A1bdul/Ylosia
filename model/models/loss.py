@@ -43,7 +43,7 @@ class BboxLoss(BaseLoss):
         iou_loss = ((1 - iou) * weight).sum() / target_scores_sum
 
         if self.use_dfl:
-            gt_ltrb = bbox2dist(target_boxes, anchor_points, self.reg_max)
+            gt_ltrb = bbox2dist(target_boxes, anchor_points, self.reg_max, device=device)
             dfl_loss = df_loss(pred_box_dist[mask].view(-1, self.reg_max + 1),
                                gt_ltrb[mask]) * weight
             dfl_loss = dfl_loss.sum() / target_scores_sum
@@ -107,7 +107,7 @@ class DetectionLoss(BaseLoss):
                 out[i, :n_matches] = targets[mask, 1:]
 
         # Convert boxes from xywh to xyxy
-        out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
+        out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor), device=self.device)
         # print("out:", out, sep=" ")
         return out
 
@@ -118,7 +118,7 @@ class DetectionLoss(BaseLoss):
         # Reshape to (batch, anchors, 4, reg_max) then softmax along reg_max dim and mul by (reg_max,) -> (b,a,4)
         pred_boxes = pred_box_dist.view(b, a, 4,
                                         c // 4).softmax(dim=3) @ self.proj
-        return dist2bbox(pred_boxes, anchor_points, xywh=False)
+        return dist2bbox(pred_boxes, anchor_points, xywh=False, device=device)
 
     def compute_loss(self, batch: Dict[str, torch.Tensor], preds: torch.Tensor):
         pred_box_dist, pred_cls = torch.cat(

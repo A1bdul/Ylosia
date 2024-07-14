@@ -37,7 +37,7 @@ class DetectionModel(BaseModel):
 
     def postprocess(self, preds: torch.Tensor):
         """Post-processes detection predictions."""
-        return nms(preds)
+        return nms(preds, device=self.device)
         # if self.mode == 'eval':
         #     preds = preds.cpu()
         #     outputs = []
