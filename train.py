@@ -28,7 +28,7 @@ def get_args():
     dataset_args = parser.add_argument_group('Dataset')
     dataset_args.add_argument('--dataset',
                               type=str,
-                              default='dataset/data.yaml',
+                              required=True,
                               help='path to dataset config file')
     dataset_args.add_argument('--dataset-mode',
                               type=str,
