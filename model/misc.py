@@ -4,9 +4,6 @@ import torch.nn as nn
 from model.modules.head import DetectionHead
 from model.modules.block import Conv, C2f, SPPF
 
-import logging
-
-
 def parse_from_config(config_dict: dict):
     """Parses a YOLOv8 configuration dictionary and creates a model.
 
@@ -16,8 +13,6 @@ def parse_from_config(config_dict: dict):
     Returns:
         Tuple[nn.Module, set]: A tuple containing the constructed YOLOv8 model and a set of indices to save.
     """
-
-    logging.basicConfig(level=logging.INFO)
 
     num_classes = config_dict.get('num_classes', 80)
     depth, width, max_channels = config_dict['scale']

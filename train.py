@@ -10,7 +10,10 @@ from model.models.detection_model import DetectionModel
 from torch.utils.data import DataLoader
 
 import yaml
+import logging
 
+log = logging.getLogger("Ylosia")
+logging.basicConfig(level=logging.INFO)
 
 def get_args():
     parser = argparse.ArgumentParser(description='YOLOv8 model training')
