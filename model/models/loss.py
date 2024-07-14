@@ -118,7 +118,7 @@ class DetectionLoss(BaseLoss):
         # Reshape to (batch, anchors, 4, reg_max) then softmax along reg_max dim and mul by (reg_max,) -> (b,a,4)
         pred_boxes = pred_box_dist.view(b, a, 4,
                                         c // 4).softmax(dim=3) @ self.proj
-        return dist2bbox(pred_boxes, anchor_points, xywh=False, device=device)
+        return dist2bbox(pred_boxes, anchor_points, xywh=False, device=self.device)
 
     def compute_loss(self, batch: Dict[str, torch.Tensor], preds: torch.Tensor):
         pred_box_dist, pred_cls = torch.cat(
