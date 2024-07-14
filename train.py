@@ -68,7 +68,7 @@ def main(args):
 
     device = torch.device(args.device)
     model = DetectionModel(args.model_config, device=device)
-    summary(model, input_size=[1, 3, 640, 640])
+    summary(model, input_size=[1, 3, 640, 640], device=device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=train_config['lr'])
     dataset = Dataset(config=args.dataset,

@@ -89,8 +89,8 @@ class Dataset(torch.utils.data.Dataset):
                 removed = True
                 os.remove(image_path)
                 os.remove(label_path)
-            if removed:
-                print(f'Empty labels with corresponding images is removed')
+        if removed:
+            print(f'Empty labels with corresponding images is removed')
 
         return filtered_image_paths, filtered_label_paths
 
