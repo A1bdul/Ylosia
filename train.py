@@ -95,6 +95,7 @@ def main(args):
             optimizer.step()
 
         if (epoch+1) % train_config['save_freq'] == 0 and args.save:
+            log.info('Saving model to checkpoint...')
             model.save(os.path.join(save_path, f'{epoch+1}.pt'))
 
 
