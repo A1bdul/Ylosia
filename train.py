@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader
 
 import yaml
 import logging
+import matplotlib.pyplot as plt
+import numpy as np
 
 log = logging.getLogger("Ylosia")
 logging.basicConfig(level=logging.INFO)
@@ -77,7 +79,7 @@ def main(args):
     dataset = Dataset(config=args.dataset,
                       mode=args.dataset_mode,
                       batch_size=train_config['batch_size'],
-                     device=device)
+                      device=device)
 
     dataloader = DataLoader(dataset,
                             batch_size=train_config['batch_size'],
@@ -89,17 +91,50 @@ def main(args):
                                  train_config['save_dir'],
                                  os.path.splitext(os.path.basename(args.model_config))[0])
         os.makedirs(save_path, exist_ok=True)
-        
+
+    # Initialize lists to store epoch and loss values for plotting
+    epochs = []
+    losses = []
+
     for epoch in trange(train_config['epochs']):
+        epoch_losses = []
         for batch in dataloader:
             loss = model.loss(batch)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            epoch_losses.append(loss.item())
 
-        if (epoch+1) % train_config['save_freq'] == 0 and args.save:
+        # Calculate average loss for the epoch
+        epoch_loss_avg = np.mean(epoch_losses)
+        epochs.append(epoch + 1)
+        losses.append(epoch_loss_avg)
+
+        if (epoch + 1) % train_config['save_freq'] == 0 and args.save:
             log.info('Saving model to checkpoint...')
-            model.save(os.path.join(save_path, f'{epoch+1}.pt'))
+            model.save(os.path.join(save_path, f'{epoch + 1}.pt'))
+
+            # Plot and save loss graph in the same directory as the weights
+            plt.figure(figsize=(10, 5))
+            plt.plot(epochs, losses, label='Training Loss')
+            plt.xlabel('Epoch')
+            plt.ylabel('Loss')
+            plt.title('Training Loss Over Epochs')
+            plt.grid(True)
+            plt.legend()
+            plt.savefig(os.path.join(save_path, f'loss_plot_epoch_{epoch + 1}.png'))
+            plt.close()
+
+    # Final plot of the overall loss curve
+    plt.figure(figsize=(10, 5))
+    plt.plot(epochs, losses, label='Training Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Training Loss Over Epochs')
+    plt.grid(True)
+    plt.legend()
+    plt.savefig(os.path.join(save_path, 'loss_plot_final.png'))
+    plt.show()
 
 
 if __name__ == "__main__":
