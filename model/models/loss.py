@@ -83,7 +83,10 @@ class DetectionLoss(BaseLoss):
                                                 num_classes=self.nc,
                                                 alpha=0.5,
                                                 beta=6.0).to(self.device)
-        print(f'num_classes: {self.nc}\nn_outputs: {self.n_outputs}\nreg_max: {self.reg_max}')
+        print(
+            f'num_classes: {self.nc}\nn_outputs: {self.n_outputs}\nreg_max: {self.reg_max}'
+        )
+
     def preprocess(self, targets: torch.Tensor, batch_size: int,
                    scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocesses target boxes to match predicted boxes batch size."""
@@ -122,8 +125,6 @@ class DetectionLoss(BaseLoss):
         pred_box_dist, pred_cls = torch.cat(
             [xi.view(preds[0].shape[0], self.n_outputs, -1) for xi in preds],
             dim=2).split((4 * self.reg_max, self.nc), dim=1)
-
-        print(f'pred_box_dist.shape: {pred_box_dist.shape}, pred_cls.shape: {pred_cls.shape}')
 
         pred_cls = pred_cls.permute(0, 2, 1).contiguous()
         pred_box_dist = pred_box_dist.permute(0, 2, 1).contiguous()
