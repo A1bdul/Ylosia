@@ -112,6 +112,7 @@ def main(args):
 
         if (epoch + 1) % train_config['save_freq'] == 0 and args.save:
             log.info('Saving model to checkpoint...')
+            print('Saving model to checkpoint...')
             model.save(os.path.join(save_path, f'{epoch + 1}.pt'))
 
             # Plot and save loss graph in the same directory as the weights
