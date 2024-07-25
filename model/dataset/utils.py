@@ -73,3 +73,18 @@ def pad_xywh(xywh: Union[np.ndarray, torch.Tensor],
                                dtype=xywh.dtype,
                                device=xywh.device)
     return padded
+
+
+def unpad_xyxy(xyxy:Union[np.ndarray, torch.Tensor], pads:Tuple[int, int, int, int]):
+    """
+    Remove padding from the bounding boxes based on image padding
+
+    Args:
+        pad: The padding added to the image in the format
+            of `(left, right, top, bottom)`.
+    """
+    l, r, t, b = pads
+    if isinstance(xyxy, np.ndarray):
+        return xyxy - np.array([l, t, l, t], dtype=xyxy.dtype)
+    return xyxy - torch.tensor([l, t, l, t], dtype=xyxy.dtype, device=xyxy.device)
+

@@ -6,10 +6,8 @@ from model.modules.block import Conv, C2f, SPPF
 
 def parse_from_config(config_dict: dict):
     """Parses a YOLOv8 configuration dictionary and creates a model.
-
     Args:
         config_dict (dict): The YOLOv8 configuration dictionary.
-        
     Returns:
         Tuple[nn.Module, set]: A tuple containing the constructed YOLOv8 model and a set of indices to save.
     """
@@ -56,6 +54,7 @@ def parse_from_config(config_dict: dict):
             channels = []  # Reset channel list
         channels.append(out_channels)
         # Remove the initial "from" index (-1) as it's not a valid index
+        
     save_idx.remove(-1)
 
     return nn.Sequential(*modules), save_idx

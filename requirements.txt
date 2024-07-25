@@ -4,3 +4,4 @@ torchinfo
 torchvision
 tqdm
 pyyaml
+matplotlib

@@ -9,7 +9,6 @@ import torch
 from math import ceil
 
 from .utils import pad_to, pad_xywh
-import matplotlib.pyplot as plt
 
 from typing import Tuple
 
@@ -42,20 +41,26 @@ class Dataset(torch.utils.data.Dataset):
         self.img_size = img_size
         self.device = torch.device(device)
 
-        assert mode in ('train', 'valid', 'test'), f'Invalid mode: {mode}'
+        assert mode in ('train', 'valid', 'val', 'test'), f'Invalid mode: {mode}'
         self.mode = mode
 
-        # Remove empty labels and corresponding images
-        self.im_files, self.label_files = self.remove_empty_labels()
+        # Remove empty labels and corresponding images if in training mode
+        if self.mode == 'train':
+            self.im_files, self.label_files = self.remove_empty_labels()
+        else:
+            self.im_files = self.get_image_paths()
+            self.label_files = self.get_label_paths()
+
         print(
-            f'Found {len(self.im_files)} images in {os.path.join(self.dataset_path, self.config[self.mode])}'
-        )
-        print(
-            f'Found {len(self.label_files)} labels in {os.path.join(self.dataset_path, self.mode + "/labels")}'
+            f'Found {len(self.im_files)} images in {os.path.join(self.dataset_path, self.mode+"/images")}'
         )
 
-        self.labels = self.get_labels()
+        if self.mode == 'train':
+            print(
+                f'Found {len(self.label_files)} labels in {os.path.join(self.dataset_path, self.mode + "/labels")}'
+            )
 
+        self.labels = self.get_labels() if self.label_files else [{} for _ in range(len(self.im_files))]
         self.seen_idxs = set()
 
     def remove_empty_labels(self):
@@ -103,7 +108,7 @@ class Dataset(torch.utils.data.Dataset):
 
         Searches recursively for .jpg, .png, and .jpeg files.
         """
-        im_dir = os.path.join(self.dataset_path, self.config[self.mode])
+        im_dir = os.path.join(self.dataset_path, self.mode+"/images")
 
         image_paths = glob(os.path.join(im_dir, '*.jpg')) + \
                       glob(os.path.join(im_dir, '*.png')) + \
@@ -142,41 +147,56 @@ class Dataset(torch.utils.data.Dataset):
             return [{} for _ in range(len(self.im_files))]
 
         labels = []
+        # for label_file in self.label_files:
+        #     with open(label_file, 'r') as f:
+        #         annotations = f.readlines()
+
+        #     boxes = []
+        #     class_ids = []
+
+        #     for ann in annotations:
+        #         ann = ann.strip().split()
+        #         class_id = int(ann[0])
+
+        #         if len(ann) == 5:  # Bounding box annotation
+        #             x_center, y_center, w, h = map(float, ann[1:])
+        #             boxes.append([x_center, y_center, w, h])
+
+        #         elif len(ann) > 5:  # Polygon annotation
+        #             polygon_coords = np.array(ann[1:],
+        #                                       dtype=float).reshape(-1, 2)
+        #             x_min, y_min = np.min(polygon_coords, axis=0)
+        #             x_max, y_max = np.max(polygon_coords, axis=0)
+        #             w = x_max - x_min
+        #             h = y_max - y_min
+        #             x_center = x_min + w / 2
+        #             y_center = y_min + h / 2
+        #             boxes.append([x_center, y_center, w, h])
+
+        #         class_ids.append(class_id)
+
+        #     # Convert to tensors and move to device
+        #     label_data = {
+        #         'bboxes': torch.tensor(boxes, dtype=torch.float32, device=self.device),
+        #         'cls': torch.tensor(class_ids, dtype=torch.long, device=self.device)
+        #     }
+
+        #     labels.append(label_data)
         for label_file in self.label_files:
-            with open(label_file, 'r') as f:
-                annotations = f.readlines()
-
-            boxes = []
-            class_ids = []
-
+            annotations = open(label_file, 'r').readlines()
+            cls, boxes = [], []
             for ann in annotations:
-                ann = ann.strip().split()
-                class_id = int(ann[0])
+                ann = ann.strip('\n').split(' ')
+                cls.append(int(ann[0]))
 
-                if len(ann) == 5:  # Bounding box annotation
-                    x_center, y_center, w, h = map(float, ann[1:])
-                    boxes.append([x_center, y_center, w, h])
+                # box provided in xywh format
+                boxes.append(torch.from_numpy(np.array(ann[1:5], dtype=float)))
 
-                elif len(ann) > 5:  # Polygon annotation
-                    polygon_coords = np.array(ann[1:],
-                                              dtype=float).reshape(-1, 2)
-                    x_min, y_min = np.min(polygon_coords, axis=0)
-                    x_max, y_max = np.max(polygon_coords, axis=0)
-                    w = x_max - x_min
-                    h = y_max - y_min
-                    x_center = x_min + w / 2
-                    y_center = y_min + h / 2
-                    boxes.append([x_center, y_center, w, h])
-
-                class_ids.append(class_id)
-
-            # Convert to tensors and move to device
-            label_data = {
-                'bboxes': torch.tensor(boxes, dtype=torch.float32, device=self.device),
-                'cls': torch.tensor(class_ids, dtype=torch.long, device=self.device)
-            }
-
-            labels.append(label_data)
+            labels.append({
+                'cls': torch.tensor(cls),
+                'bboxes': torch.vstack(boxes)
+            })
+            
         return labels
 
     def load_image(self, idx):
@@ -198,7 +218,6 @@ class Dataset(torch.utils.data.Dataset):
                        self.img_size[0]), min(ceil(w0 * ratio),
                                               self.img_size[1])
             image = cv2.resize(image, (h, w), interpolation=cv2.INTER_LINEAR)
-            plt.imshow(image)
 
         image = image.transpose((2, 0, 1))  # (h, w, 3) -> (3, h, w)
 
@@ -218,10 +237,11 @@ class Dataset(torch.utils.data.Dataset):
         label['images'], label['padding'], label['orig_shapes'], label[
             'ids'] = self.load_image(idx)
 
-        label['bboxes'] = pad_xywh(label['bboxes'],
-                                   label['padding'],
-                                   label['orig_shapes'],
-                                   return_norm=True)
+        if 'bboxes' in label:
+            label['bboxes'] = pad_xywh(label['bboxes'],
+                                       label['padding'],
+                                       label['orig_shapes'],
+                                       return_norm=True)
 
         self.seen_idxs.add(idx)
 
@@ -247,11 +267,12 @@ class Dataset(torch.utils.data.Dataset):
             elif k in ('padding', 'orig_shapes', 'ids'):
                 collated_batch[k] = [b[k] for b in batch]
 
-        collated_batch['batch_idx'] = [
-            torch.full((batch[i]['cls'].shape[0], ), i, device=batch[i]['cls'].device)
-            for i in range(len(batch))
-        ]
-        collated_batch['batch_idx'] = torch.cat(collated_batch['batch_idx'],
-                                                dim=0)
+        if 'cls' in collated_batch:
+            collated_batch['batch_idx'] = [
+                torch.full((batch[i]['cls'].shape[0], ), i, device=batch[i]['cls'].device)
+                for i in range(len(batch))
+            ]
+            collated_batch['batch_idx'] = torch.cat(collated_batch['batch_idx'],
+                                                    dim=0)
 
         return collated_batch

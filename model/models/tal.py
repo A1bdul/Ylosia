@@ -138,7 +138,7 @@ class TaskAlignedAssigner(nn.Module):
         # merge masks (batch_size, num_max_boxes, n_anchors)
         mask = topk_mask * mask_anchors_in_gt * gt_mask
 
-        return mask, alignment_metrics, ious
+        return mask,  alignment_metrics, ious
 
     def get_alignment_metric(self, pred_scores, pred_boxes, gt_labels, gt_boxes, mask):
         """
