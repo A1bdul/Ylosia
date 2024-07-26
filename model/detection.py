@@ -290,7 +290,7 @@ class Detections:
             cv2.rectangle(image, (x1, y1_label - h), (x1 + w, y1_label), cls_color, -1)
             cv2.putText(image, label, (x1, y1_label), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA)
 
-        cv2.imshow('image', image)
+        # cv2.imshow('image', image)
         return image
 
 
