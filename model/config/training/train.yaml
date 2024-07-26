@@ -1,6 +1,6 @@
-batch_size: 10
-epochs: 50
-lr: 1.0e-05
+batch_size: 32
+epochs: 200
+lr: 1.0e-04
 num_classes: 1
 save_dir: model/weights
-save_freq: 5
+save_freq: 20
