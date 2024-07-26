@@ -93,12 +93,12 @@ def main(args):
             detections = Detections.from_yolo(preds[i])
 
             if args.save:
-                # detections.save(os.path.join(label_path, batch['ids'][i]+'.txt'), pads=batch['padding'][i], im_size=batch['orig_shapes'][i])
+                detections.save(os.path.join(label_path, batch['ids'][i]+'.txt'), pads=batch['padding'][i], im_size=batch['orig_shapes'][i])
                 image = batch['images'][i].detach().cpu().numpy().transpose((1, 2, 0))
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-                image = detections.view(image, classes_dict=dataset.config['names'], cmap=cmap, pads=batch['padding'][i])
+                # image = detections.view(image, classes_dict=dataset.config['names'], cmap=cmap, pads=batch['padding'][i])
 
-                cv2.waitKey(0)
+                # cv2.waitKey(0)
                 # visualized_image_path = os.path.join(save_path, batch['ids'][i] + '_visualized.jpg')
                 # cv2.imwrite(visualized_image_path, image)
 
